@@ -30,3 +30,16 @@ Git bash에서 아래 git명령어 입력: 설정정보 초기화
    - $ git config --global --unset user.name
    - $ git config --global --unset user.email
    - $ git config --global --list 로 확인!
+
+7. **branch란**
+   - 특정 시점에서 코드의 버전(상태)을 나누어 별도로 관리할 수 있도록 하는 기능.
+   - 기본 브랜치 (Main, Master)에서 나뭇가지 처럼 새로운 브랜치를 생성하여 기능 추가, 오류 수정 등을 가능하게 한다.
+   - 분기된 가지: 특정 시점에서 갈라져서 독립적인 작업 가능.
+   **$ git branch:** 브랜치 목록 확인
+   **$ git branch <브랜치명>:** 브랜치 생성
+   **$ git switch <브랜치명>:** 브랜치 이동
+   **$ git switch -c <브랜치명>:** 브랜치 생성+이동
+   **$ git branch -m <기존 브랜치명> <새 브랜치명>:** 브랜치 이름 수정
+   **$ git branch -d <브랜치명>:** 브랜치 삭제
+   **$ git merge <병합할 브랜치명>:** 병합할 브랜치를 현재 위치의 브랜치로 병합
+   
