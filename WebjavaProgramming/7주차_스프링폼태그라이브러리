@@ -1,0 +1,639 @@
+# 스프링 폼 태그 라이브러리
+
+## 📚 학습목표
+- 스프링 폼 태그의 정의 및 특징 이해
+- 스프링 폼 태그의 사용법 학습
+- 입력받은 데이터 처리 어노테이션 학습
+
+---
+
+## 1. 스프링 폼 태그 개요
+
+### 스프링 폼 태그란?
+- **스프링 웹 MVC와 연동되는 JSP 태그 라이브러리**
+- HTML 폼에서 전달되는 파라미터를 Java Bean 클래스의 프로퍼티에 자동으로 설정 가능
+- 동적 웹 애플리케이션 개발을 더 쉽고 편리하게 만듦
+
+### 스프링 폼 태그 라이브러리 선언
+```jsp
+<%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
+```
+
+---
+
+## 2. 스프링 폼 태그의 종류
+
+| 태그 | 설명 | 출력되는 HTML |
+|------|------|-------------|
+| `<form:form>` | 폼의 시작과 끝 | `<form>` |
+| `<form:input>` | 일반 텍스트 입력 필드 | `<input type="text">` |
+| `<form:password>` | 비밀번호 입력 필드 | `<input type="password">` |
+| `<form:checkbox>` | 단일 체크박스 | `<input type="checkbox">` |
+| `<form:checkboxes>` | 체크박스 목록 | 여러 개의 `<input type="checkbox">` |
+| `<form:radiobutton>` | 단일 라디오버튼 | `<input type="radio">` |
+| `<form:radiobuttons>` | 라디오버튼 목록 | 여러 개의 `<input type="radio">` |
+| `<form:select>` | 콤보박스/리스트박스 | `<select>` |
+| `<form:option>` | select 내 옵션 | `<option>` |
+| `<form:options>` | option 목록 | 여러 개의 `<option>` |
+| `<form:textarea>` | 여러 줄 텍스트 입력 | `<textarea>` |
+| `<form:hidden>` | 숨겨진 입력 필드 | `<input type="hidden">` |
+| `<form:errors>` | 유효성 검사 오류 메시지 | - |
+
+---
+
+## 3. 스프링 폼 태그 사용법
+
+### 3.1 `<form:form>` 태그
+
+#### 형식
+```jsp
+<form:form 속성1="값1" [속성2="값2" ...]>
+  // 다양한 입력 양식 태그들
+</form:form>
+```
+
+#### 주요 속성
+
+| 속성 | 설명 | 기본값 |
+|------|------|--------|
+| `modelAttribute` | 폼 객체가 노출되는 모델 속성의 이름 | 'command' |
+| `action` | 데이터를 받아 처리하는 웹 페이지의 URL | 자동 설정 |
+| `method` | 데이터 전송 HTTP 방식 (GET/POST) | POST |
+| `name` | 폼을 식별하는 이름 | - |
+| `enctype` | 폼 전송 콘텐츠 MIME 유형 | - |
+| `accept-charset` | 폼 전송 문자 인코딩 | - |
+
+#### 사용 예제
+```jsp
+<form:form modelAttribute="member">
+  ...
+</form:form>
+```
+
+**출력되는 HTML:**
+```html
+<form id="member" action="..." method="post">
+  ...
+</form>
+```
+
+> **주의사항**
+> - `action` 속성이 생략되면 현재 요청 URL이 자동으로 설정됨
+> - `method` 속성이 생략되면 POST가 자동으로 설정됨
+
+### 3.2 `<form:form>` 안에 사용하는 태그
+
+#### 필수 속성: `path`
+```jsp
+<form:form modelAttribute="커맨드객체">
+  <form:태그_이름 path="커맨드객체의프로퍼티명"/>
+</form:form>
+```
+
+> **중요:** `modelAttribute`를 설정하면 중첩되는 모든 폼 태그에 `path` 속성을 설정해야 함
+
+### 3.3 실전 예제: 회원가입 폼
+
+**Java Bean 클래스:**
+```java
+package com.springmvc.chap07;
+
+public class Member {
+    private int id;
+    private String passwd;
+    private String city;
+    private String sex;
+    private String[] hobby;
+    private Date birth;
+
+    public Member() {}
+
+    public int getId() { return id; }
+    public void setId(int id) { this.id = id; }
+    
+    // 나머지 getter/setter...
+}
+```
+
+**Controller:**
+```java
+package com.springmvc.chap07;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+
+@Controller
+public class Example01Controller {
+    @GetMapping("/member")
+    public String showForm(Model model) {
+        Member member = new Member();
+        model.addAttribute("member", member);
+        return "webpage07_01";
+    }
+}
+```
+
+**JSP View (webpage07_01.jsp):**
+```jsp
+<%@ page contentType="text/html; charset=utf-8"%>
+<%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
+
+<html>
+<head>
+    <title>Form Tag</title>
+</head>
+<body>
+    <h3>회원가입</h3>
+    <form:form modelAttribute="member" method="post">
+        <p>아이디 : <form:input path="id" name="id"/>
+        <p>비밀번호 : <form:password path="passwd"/>
+        
+        <p>거주지 : <form:select path="city">
+            <form:option value="서울시">서울시</form:option>
+            <form:option value="경기도">경기도</form:option>
+            <form:option value="인천시">인천시</form:option>
+            <form:option value="충청도">충청도</form:option>
+            <form:option value="전라도">전라도</form:option>
+            <form:option value="경상도">경상도</form:option>
+        </form:select>
+        
+        <p>성별 : 
+            <form:radiobutton path="sex" value="남성"/>남성
+            <form:radiobutton path="sex" value="여성"/>여성
+        
+        <p>취미 : 
+            독서<form:checkbox path="hobby" value="독서"/>
+            운동<form:checkbox path="hobby" value="운동"/>
+            영화<form:checkbox path="hobby" value="영화"/>
+        
+        <p>
+            <input type="submit" value="가입하기"/>
+            <input type="reset" value="다시쓰기"/>
+        </p>
+    </form:form>
+</body>
+</html>
+```
+
+---
+
+## 4. @ModelAttribute를 이용한 데이터 바인딩
+
+### 4.1 @ModelAttribute란?
+
+**정의:**
+- 메서드 매개변수 또는 메서드 반환값을 웹 뷰에 전달되는 모델 속성에 바인딩하는 어노테이션
+- JSP 폼에서 입력된 데이터가 컨트롤러에 전달될 때 자동으로 Java Bean 객체에 채워짐
+
+### 4.2 요청 처리 메소드의 매개변수에 @ModelAttribute 적용
+
+#### 형식
+```java
+@PostMapping("/path")
+public String method_name(@ModelAttribute Member member, Model model) {
+    // member 객체에 폼에서 입력한 데이터가 자동으로 바인딩됨
+    return "뷰이름";
+}
+```
+
+#### 예제
+```java
+package com.springmvc.chap07;
+
+@Controller
+public class Example02Controller {
+    @PostMapping("/member")
+    public String submitForm(@ModelAttribute Member member, Model model) { 
+        System.out.println("@PostMapping----------------");
+        System.out.println("아이디: " + member.getId());
+        System.out.println("비밀번호: " + member.getPasswd());
+        System.out.println("거주지: " + member.getCity());
+        System.out.println("성 별: " + member.getSex());
+        
+        System.out.print("취 미: ");
+        for(int i = 0; i < member.getHobby().length; i++)
+            System.out.print("[" + member.getHobby()[i] + "] ");
+        
+        model.addAttribute("member", member);
+        return "webpage07_02";
+    }
+}
+```
+
+**응답 JSP (webpage07_02.jsp):**
+```jsp
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+
+<h3>회원정보</h3>
+<p>아이디: ${member.id}
+<p>비밀번호: ${member.passwd}
+<p>거주지: ${member.city}
+<p>성 별: ${member.sex}
+<p>취 미: <c:forEach items="${member.hobby}" var="hobby">
+    [<c:out value="${hobby}" />]
+</c:forEach>
+```
+
+### 4.3 메소드에 @ModelAttribute 적용
+
+#### 특징
+- 컨트롤러에서 공통적으로 Model에 설정할 속성을 지정할 때 사용
+- `@RequestMapping`이 적용되지 않은 별도의 메소드를 만들어서 적용
+- **모든 요청 처리 메소드 실행 전에 먼저 실행됨**
+
+#### 형식 1: 반환값이 있는 경우
+```java
+@ModelAttribute("모델_속성_이름")
+public String 메소드_이름() {
+    return "값";
+}
+```
+
+#### 형식 2: Model 객체를 직접 조작하는 경우
+```java
+@ModelAttribute
+public void 메소드_이름(Model model) {
+    model.addAttribute("속성명", 값);
+}
+```
+
+#### 예제
+```java
+package com.springmvc.chap07;
+
+@Controller
+public class Example03Controller {
+    @GetMapping("/exam03")
+    public String showForm() {
+        return "webpage07_03";
+    }
+    
+    @ModelAttribute("title")
+    public String setTitle() {
+        return "@ModelAttribute 유형";
+    }
+    
+    @ModelAttribute
+    public void setsubTitle(Model model) {
+        model.addAttribute("subtitle", "메소드에 @ModelAttribute 적용하기");
+    }
+}
+```
+
+**JSP에서 사용:**
+```jsp
+<h2>${title}</h2>
+<h4>${subtitle}</h4>
+```
+
+**실행 순서:**
+```
+1. setTitle() 실행 → model에 title 속성 추가
+2. setsubTitle() 실행 → model에 subtitle 속성 추가
+3. showForm() 실행 → webpage07_03으로 이동
+```
+
+---
+
+## 5. @InitBinder를 이용한 커스텀 데이터 바인딩
+
+### 5.1 @InitBinder란?
+
+**정의:**
+- 사용자가 입력한 데이터가 Java Bean 객체의 프로퍼티에 설정되기 **전에** 데이터 바인딩 방법을 변경
+- `WebDataBinder` 객체를 초기화하는 메소드와 함께 사용
+
+#### 형식
+```java
+@InitBinder
+public void 메소드_이름(WebDataBinder binder) {
+    // 바인딩 규칙 설정
+}
+
+@InitBinder("Java Bean 객체 이름")
+public void 메소드_이름(WebDataBinder binder) {
+    // 특정 객체에만 적용
+}
+```
+
+### 5.2 주요 메소드
+
+#### 1) setAllowedFields() - 허용할 필드 설정
+```java
+binder.setAllowedFields("필드명1", "필드명2", ...);
+```
+
+**특징:**
+- 지정된 필드만 데이터 바인딩 허용
+- 보안상 중요한 필드(예: 관리자 권한)를 무단 수정 방지
+
+**실행 예시:**
+```
+브라우저 → a=1&b=2&c=3 → Controller
+↓
+@InitBinder
+setAllowedFields("a", "c")
+↓
+요청 핸들러 메소드 수신 → a=1, c=3 (b는 무시됨)
+```
+
+#### 2) setDisallowedFields() - 차단할 필드 설정
+```java
+binder.setDisallowedFields("필드명1", "필드명2", ...);
+```
+
+**특징:**
+- 지정된 필드는 데이터 바인딩 불허
+- 나머지 필드는 모두 바인딩됨
+
+### 5.3 예제
+
+```java
+package com.springmvc.chap07;
+
+@Controller
+public class Example04Controller {
+    @GetMapping("/exam04")
+    public String showForm(Model model) {
+        model.addAttribute("member", new Member());
+        return "webpage07_01";
+    }
+    
+    @PostMapping("/exam04")
+    public String submit(@ModelAttribute Member member, Model model) { 
+        model.addAttribute("member", member);
+        return "webpage07_02";
+    }
+    
+    @InitBinder
+    public void initBinder(WebDataBinder binder) {
+        // id, passwd, city, sex만 바인딩 허용
+        binder.setAllowedFields("id", "passwd", "city", "sex");
+    }
+}
+```
+
+**결과:**
+- `hobby` 필드는 폼에서 전송되어도 무시됨
+- `member` 객체에는 id, passwd, city, sex 값만 설정됨
+
+---
+
+## 6. 실습: 스프링 폼 태그로 도서 등록 페이지 만들기
+
+### 6.1 흐름도
+```
+BookController.requestAddBookForm 호출
+        ↓
+도서 등록 요청 URL(/books/add)
+        ↓
+addBook.jsp 렌더링
+        ↓
+사용자가 도서 정보 입력 후 제출
+        ↓
+submitAddNewBook 메소드에서 처리
+```
+
+### 6.2 BookController.java
+
+```java
+package com.springmvc.controller;
+
+@Controller
+@RequestMapping("/books")
+public class BookController {
+    @Autowired
+    private BookService bookService;
+
+    @GetMapping("/add")
+    public String requestAddBookForm(@ModelAttribute("NewBook") Book book) {
+        return "addBook";
+    }
+
+    @PostMapping("/add")
+    public String submitAddNewBook(@ModelAttribute("NewBook") Book book) {
+        this.bookService.setNewBook(book);
+        return "redirect:/books";  // 도서 목록 페이지로 리다이렉트
+    }
+
+    @ModelAttribute
+    public void addAttributes(Model model) {
+        model.addAttribute("addTitle", "신규 도서 등록");
+    }
+
+    @InitBinder
+    public void initBinder(WebDataBinder binder) {
+        binder.setAllowedFields(
+            "bookId", "name", "unitPrice", "author", 
+            "description", "publisher", "category", 
+            "unitsInStock", "releaseDate", "condition"
+        );
+    }
+}
+```
+
+### 6.3 addBook.jsp 일부
+
+```jsp
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<%@ taglib prefix="form" uri="http://www.springframework.org/tags/form"%>
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <link href="<c:url value="/resources/css/bootstrap.css"/>" rel="stylesheet">
+    <title>도서 등록</title>
+</head>
+<body>
+    <div class="container">
+        <form:form modelAttribute="NewBook" class="form-horizontal">
+            <fieldset>
+                <legend>${addTitle}</legend>
+                
+                <!-- 도서 ID -->
+                <div class="form-group row">
+                    <label class="col-sm-2 control-label">도서 ID</label>
+                    <div class="col-sm-3">
+                        <form:input path="bookId" class="form-control"/>
+                    </div>
+                </div>
+                
+                <!-- 도서명 -->
+                <div class="form-group row">
+                    <label class="col-sm-2 control-label">도서명</label>
+                    <div class="col-sm-3">
+                        <form:input path="name" class="form-control"/>
+                    </div>
+                </div>
+                
+                <!-- 가격 -->
+                <div class="form-group row">
+                    <label class="col-sm-2 control-label">가격</label>
+                    <div class="col-sm-3">
+                        <form:input path="unitPrice" class="form-control"/>
+                    </div>
+                </div>
+                
+                <!-- 저자 -->
+                <div class="form-group row">
+                    <label class="col-sm-2 control-label">저자</label>
+                    <div class="col-sm-3">
+                        <form:input path="author" class="form-control"/>
+                    </div>
+                </div>
+                
+                <!-- 상세정보 (여러 줄) -->
+                <div class="form-group row">
+                    <label class="col-sm-2 control-label">상세정보</label>
+                    <div class="col-sm-5">
+                        <form:textarea path="description" cols="50" rows="2" 
+                                      class="form-control"/>
+                    </div>
+                </div>
+                
+                <!-- 출판사 -->
+                <div class="form-group row">
+                    <label class="col-sm-2 control-label">출판사</label>
+                    <div class="col-sm-3">
+                        <form:input path="publisher" class="form-control"/>
+                    </div>
+                </div>
+                
+                <!-- 분야 -->
+                <div class="form-group row">
+                    <label class="col-sm-2 control-label">분야</label>
+                    <div class="col-sm-3">
+                        <form:input path="category" class="form-control"/>
+                    </div>
+                </div>
+                
+                <!-- 재고수 -->
+                <div class="form-group row">
+                    <label class="col-sm-2 control-label">재고수</label>
+                    <div class="col-sm-3">
+                        <form:input path="unitsInStock" class="form-control"/>
+                    </div>
+                </div>
+                
+                <!-- 출판일 -->
+                <div class="form-group row">
+                    <label class="col-sm-2 control-label">출판일</label>
+                    <div class="col-sm-3">
+                        <form:input path="releaseDate" class="form-control"/>
+                    </div>
+                </div>
+                
+                <!-- 상태 (라디오버튼) -->
+                <div class="form-group row">
+                    <label class="col-sm-2 control-label">상태</label>
+                    <div class="col-sm-3">
+                        <form:radiobutton path="condition" value="New"/> New 
+                        <form:radiobutton path="condition" value="Old"/> Old 
+                        <form:radiobutton path="condition" value="E-Book"/> E-Book 
+                    </div>
+                </div>
+                
+                <!-- 버튼 -->
+                <div class="form-group row">
+                    <div class="col-sm-offset-2 col-sm-10">
+                        <input type="submit" class="btn btn-primary" value="등록"/>
+                    </div>
+                </div>
+            </fieldset>
+        </form:form>
+    </div>
+</body>
+</html>
+```
+
+### 6.4 테스트
+```
+1. 서버 실행
+2. http://localhost:8080/books/add 접속
+3. 도서 정보 입력
+4. "등록" 버튼 클릭
+5. 도서 목록 페이지에서 등록된 도서 확인
+```
+
+---
+
+## 7. Redirect vs Forward
+
+### 7.1 차이점 비교
+
+| 항목 | Redirect | Forward |
+|------|----------|---------|
+| **특징** | HTTP 응답 헤더로 브라우저가 URL 이동 | 서버 내에서 제어권 이동 |
+| **목적** | 화면 이동 | 요청 처리 체인 구성 |
+| **브라우저 URL** | 변경됨 | 변경되지 않음 |
+| **데이터 전달** | 제한적 (URL query string만) | 쉬움 (request 객체로 전달) |
+| **이동 범위** | 도메인 다른 서버로 이동 가능 | 한 서버 내에서만 이동 가능 |
+
+### 7.2 Spring에서의 사용법
+
+```java
+// Redirect - URL이 변경됨
+return "redirect:/books";  // GET /books로 이동
+
+// Forward - URL이 변경되지 않음
+return "forward:/books/list";  // 내부적으로 /books/list 처리
+```
+
+---
+
+## 📝 정리 및 핵심 개념
+
+### 1. 스프링 폼 태그 사용 단계
+```
+1. JSP에 taglib 선언
+2. Java Bean 클래스 정의 (getter/setter)
+3. Controller에서 @GetMapping으로 폼 보여주기
+4. JSP에서 <form:form> 태그로 폼 작성
+5. Controller에서 @PostMapping으로 데이터 받기
+6. @ModelAttribute로 자동 바인딩
+```
+
+### 2. 데이터 바인딩 흐름
+```
+사용자 입력 (HTML 폼)
+     ↓
+폼 전송 (POST 요청)
+     ↓
+Controller에 도착
+     ↓
+@InitBinder로 검증 (허용/차단 필드 결정)
+     ↓
+@ModelAttribute로 자동 바인딩
+     ↓
+Java Bean 객체에 데이터 채워짐
+```
+
+### 3. 세 가지 어노테이션의 역할
+- **@ModelAttribute 매개변수**: 폼 데이터 → Java Bean 객체로 자동 변환
+- **@ModelAttribute 메소드**: 모든 요청 전에 공통 데이터 모델에 추가
+- **@InitBinder**: 데이터 바인딩 규칙을 사전에 정의 (보안 강화)
+
+---
+
+## 🎯 학습체크리스트
+
+- [ ] 스프링 폼 태그 라이브러리 선언 방법 이해
+- [ ] `<form:form>`, `<form:input>`, `<form:select>` 등의 사용법 이해
+- [ ] `modelAttribute`와 `path` 속성의 역할 이해
+- [ ] `@ModelAttribute` 매개변수 사용법 이해
+- [ ] `@ModelAttribute` 메소드 사용법 및 실행 순서 이해
+- [ ] `@InitBinder`의 `setAllowedFields()` 메소드 이해
+- [ ] Redirect와 Forward의 차이 이해
+- [ ] 실습 프로젝트 완성 (도서 등록 페이지)
+
+---
+
+## 🔗 관련 기술
+- Spring MVC
+- JSP
+- Java Beans
+- Data Binding
+- Web Security (데이터 검증)
